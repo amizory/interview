@@ -7,13 +7,16 @@
     "autodiscovery",
     "chkconfig",
     "containerd",
+    "DHCPACK",
     "fluetbit",
     "journalctl",
     "lsmem",
     "nelnet",
     "netcat",
+    "OSPF",
     "psql",
     "testrole",
+    "traceroute",
     "TSDB",
     "uncordon"
   ]
