@@ -5,6 +5,7 @@
 * [PostgreSQL](#PostgreSQL)
 * [k8s](#k8s)
 * [Ansible](#Ansible)
+* [CICD](#CICD)
 * [docker](#docker)
 * [Bash](#Bash)
 * [OBS](#OBS)
@@ -57,7 +58,7 @@
     не могут быть выполнены до тех пор, пока не будет получен сигнал или не истечет определенный
     период времени
 
-    cpu/memory/i-o --> untrackable process --> не отслеживаемый, не контролируемый системой
+    cpu/memory/i-o --> untraceable process --> не отслеживаемый, не контролируемый системой
 
     ps -ef --> PID 0, unknown, UID-GID 0, Z, D
 
@@ -209,7 +210,7 @@
     - Использовать команду fsck: Если вы обнаружили, что файловая система имеет повреждённую
     таблицу inode, вы можете использовать команду fsck для восстановления файловой системы и
     освобождения inode.
-    fsck -f <устройство
+    fsck -f <устройство>
 
     ext4|XFS|Btrfs|F2FS|NTFS|HFS|FAT
 ```
@@ -264,6 +265,15 @@
     
     Например: ps -l Выводит список процессов с их состояниями.
     top Выводит список процессов с их состояниями в режиме реального времени.
+```
+
+```txt
+12 - initramfs 
+
+->   FS которая загружается в RAM во время запуска OC
+     - подготовка системы (загружается необходимые модули ядра и конфигурируют систему)
+     - загрузка драйверов
+     - init - реальный корень - файловой системы
 ```
 
 ### <a id="Web">Web</a>
@@ -433,7 +443,9 @@
 ```txt
 8 - Балансировка трафика
 
-->  Процесс распределения входящего сетевого трафика между несколькими серверами для увеличения
+->  stateless - scale 
+    stateful - тут все сложнее 
+    Процесс распределения входящего сетевого трафика между несколькими серверами для увеличения
     пропускной способности, снижения нагрузки и повышения доступности приложений.
     - Используйте балансировщик нагрузки, такой как HAProxy или NGINX.
 
@@ -578,27 +590,6 @@
     о том, какой VLAN принадлежит каждое устройство.    
 ```
 
-```txt
-10 - 
-
-->  
-    
-```
-
-```txt
-11 - 
-
-->  
-    
-```
-
-```txt
-12 - 
-
-->  
-    
-```
-
 ### <a id="PostgreSQL">PostgreSQL</a>
 
 ```txt
@@ -724,24 +715,8 @@
     ingress - L7 - для трафика - HTTP-URL-proxy
     ingress-controller - app - доставка трафика внутрь кластера k8s - ds?
     loadbalancer - сетевая часть - отправляет трафик по IP
-```
-
-```txt
- - 
-
-->  
-```
-
-```txt
- - 
-
-->  
-```
-
-```txt
- - 
-
-->  
+        - cloud 
+        - metallb - установить/настроить 
 ```
 
 ### <a id="Ansible">Ansible</a>
@@ -760,27 +735,78 @@
 ```
 
 ```txt
- - 
+2 - Автоматизировать роль в Ansible 
 
+->  - shell runner - в ci/cd 
+    - зависимости
+    - инфастуктура как код - playbook/cfg в repo
+    - inventory можно оставить на хост машине
+
+     AWX — решение для централизованного управления плейбуками, расписанием их запусков,
+     управления инвентори, учетными данными для доступа к серверам, а также механизм
+     callback'ов для запроса конфигураций со стороны сервера
+
+     Либо руками:
+     - python 
+     - pip ansible
+     - mnt playbook/cfg
+     - secrets из внешней части 
+     debian + python + pip install ansible + mnt
+```
+
+```txt
+2 - Dynamic Inventory Plugin
+
+->  Плагин, который позволяет Ansible автоматически обнаруживать и добавлять хосты в инвентарь
+    на основе различных источников данных.
+    - ansible-galaxy install script
+    - hosts.txt с содержимым:
+    192.168.1.100
+    192.168.1.101
+    192.168.1.102
+    - [local_hosts]
+      ansible_host = {{ ansible_host }}
+      ansible_user = user
+    - plugin: script
+      script: hosts.txt
+    - ansible -i inventory.yml local_hosts -m ping
+```
+
+### <a id="CICD">CICD</a>
+
+```txt
+1 - Как работать с секретами в GitLab CI?
+
+->  - Variables: можно создать переменные окружения в разделе
+    "CI/CD" > "Variables" в GitLab. Эти переменные можно
+    использовать в файле .gitlab-ci.yml как $VARIABLE_NAME.
+
+    - Secrets: можно создать секреты в разделе
+    "CI/CD" > "Secrets" в GitLab. Эти секреты
+    можно использовать в файле .gitlab-ci.yml как $SECRET_NAME.
+
+    - Environment variables: можно создать переменные окружения
+    в файле .gitlab-ci.yml используя ключевое слово environment.
+
+    variables:
+        SECRET_KEY: $SECRET_KEY
+    script:
+        - echo "Secret key is $SECRET_KEY"
+
+    secrets:
+        SECRET_KEY: $SECRET_KEY
+    script:
+        - echo "Secret key is $SECRET_KEY"
+    
+    - или HashiCorp Vault
 ->  
 ```
 
 ```txt
- - 
+2 - pipeline ci 'settings'
 
-->  
-```
-
-```txt
- - 
-
-->  
-```
-
-```txt
- - 
-
-->
+->  - shared runner - tag
+    - matrix - owner/develop(не может создать новый pipeline)/other
 ```
 
 ### <a id="docker">docker</a>
@@ -802,6 +828,15 @@
 
     Есть
     - Только необходимые файлы
+```
+
+```txt
+3 - CMD - entrypoint
+
+->  entrypoint + cmd = конкатенация команд
+    command1command2
+    ENTRYPOINT ["echo"]
+    CMD ["Hello, World"]
 ```
 
 ### <a id="Bash">Bash</a>
@@ -836,81 +871,10 @@
 ```
 
 ```txt
- - 
+2 - prometheus/zabbix
 
-->  
-    
-```
+->  prometheus - сам обходит exporter
+    - краткосрочные процессы - pushgateway
 
-```txt
- - 
-
-->  
-    
-```
-
-```txt
- - 
-
-->  
-    
-```
-
-```txt
- - 
-
-->  
-    
-```
-
-```txt
- - 
-
-->  
-    
-```
-
-```txt
- - 
-
-->  
-    
-```
-
-```txt
- - 
-
-->  
-    
-```
-
-```txt
- - 
-
-->  
-    
-```
-
-```txt
- - 
-
-->  
-```
-
-```txt
- - 
-
-->  
-```
-
-```txt
- - 
-
-->  
-```
-
-```txt
- - 
-
-->  
+    zabbix - push model
 ```
